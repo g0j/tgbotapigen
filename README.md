@@ -1,0 +1,2 @@
+# tgbotapigen
+Telegram BotAPI codegen
