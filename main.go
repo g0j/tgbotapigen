@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/PuerkitoBio/goquery"
+	"github.com/g0j/tgbotapigen/tgparser"
 	"github.com/rs/zerolog"
 )
 
@@ -32,27 +32,25 @@ func main() {
 		logger.Fatal().Err(err).Msg("failed to check config")
 	}
 
-	var doc *goquery.Document
-
+	tp := tgparser.New().SetLogger(logger.With().Str("module", "parser").Logger())
 	if config.File != "" {
-		logger.Info().Str("file", config.File).Msg("fetching file")
-		doc, err = APIDocumentFromFile(config.File)
+		tp.SetFile(config.File)
 	} else {
-		logger.Info().Str("url", config.URL).Msg("fetching url")
-		doc, err = APIDocumentFromURL(config.URL)
+		tp.SetURL(config.URL)
 	}
 
+	err = tp.Fetch()
 	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to fetch api")
+		logger.Fatal().Err(err).Msg("parsing error")
 	}
 
 	if config.VersionMode {
-		v, err := ParseAPIVersion(doc)
+		v, err := tp.APIVersion()
 		if err != nil {
 			logger.Fatal().Err(err).Msg("failed to detect api version")
 		}
 
-		logger.Info().Str("ver", v).Msg("api version")
+		logger.Info().Str("current", v).Msg("api version")
 
 		return
 	}
