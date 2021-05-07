@@ -3,11 +3,15 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 
 	"github.com/rs/zerolog"
 )
 
-var ErrUndefinedAPIURI = errors.New("either api url or api file must be set")
+var (
+	ErrUndefinedAPIURI = errors.New("either api url or api file must be specified")
+	ErrTooManyURI      = errors.New("only one api uri must be specified")
+)
 
 // Telegram BotAPI default url.
 const botAPIURL = "https://core.telegram.org/bots/api"
@@ -22,8 +26,11 @@ type Config struct {
 
 // Check vlidates required fields of config.
 func (c *Config) Check() error {
-	if c.File == "" && c.URL == "" {
+	switch {
+	case c.File == "" && c.URL == "":
 		return ErrUndefinedAPIURI
+	case c.File != "" && c.URL != "":
+		return ErrTooManyURI
 	}
 
 	return nil
@@ -71,7 +78,7 @@ func ParseFlags(args []string) (*Config, error) {
 	)
 
 	if err := flagset.Parse(args); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse flags: %w", err)
 	}
 
 	return &conf, nil
